@@ -1,0 +1,44 @@
+@import url('https://fonts.googleapis.com/css2?family=Spectral+SC&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat&display=swap');
+
+#main-header{
+    background: linear-gradient(to right, #fff1e6 0%, #ddbea9 100%);
+    display: inline-block;
+    width: 100%;
+}
+
+#main-header ul{
+    float: right;
+    display: flex;
+}
+
+#main-header ul li{
+    list-style: none;
+    margin: 0 1rem;
+    font-weight: bold;
+}
+
+#main-header h2{
+    font-family: 'Spectral SC', serif;
+    text-align: center;
+    margin: 0;
+    line-height: 70px;
+    height: 10px;
+}
+
+
+#main-header ul li a{
+    font-family: 'Montserrat', sans-serif;
+    text-decoration: none;
+    color: white;
+
+}
+
+#main-header ul li a:hover{
+    color: black;
+}
+
+.menu-item-active{
+    color: black !important;
+
+}
