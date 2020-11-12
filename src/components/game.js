@@ -11,17 +11,19 @@ export const Game = (props) => {
     const [wrongWords, setWrongWords] =  useState(0);
     const [wpm, setWpm] =  useState(0);
     const [accuracy, setAccuracy] = useState(0);
+    const [backspacePressed, setBackspacePressed] = useState(false);
     // const [secondsPassed, setSecondsPassed] = useState(0);
     const [prevInput, setPrevInput] = useState("");
     const [wordInProgress, setWordInProgress] = useState("");
     const [words, setWords] = useState(text);
 
     //Ref to the seconds passed - put in a ref becuase of stale closure of setInterval function
-    const secondsPassed = useRef(0);
+    const secondsPassed = useRef(55);
     const intervalRef = useRef();
     //100 because when setInterval fires for first time, at least 100 seconds would have passed
     const tenthsPassed =  useRef(100);
     const startAngleCoef = useRef(1.5);
+    const [inputBoxStyle, setInputBoxStyle] = useState({width: "10%"})
 
     const [passedWords, setPassedWords] =  useState({
         correct: [],
@@ -31,45 +33,6 @@ export const Game = (props) => {
     useEffect(() => {
         init();
     }, [])
-
-    //Function to handle backspace
-    const handleBackspace = useCallback((event) => {
-        //Check if backspace is pressed
-        if(event.key === "Backspace"){
-            console.log("backspace")
-            //Get input word from user
-            const inputValue = document.getElementById("input-box").innerText;
-
-            //If input is empty or the handler is fired with the same input -> return
-            if (!inputValue || inputValue === prevInput) return;
-
-            //Update prevInput
-            setPrevInput(inputValue);
-
-            const lastChar = inputValue[inputValue.length - 1];
-            //Decide if current character should be inserted in the text.
-            if(currentWord[inputValue.length - 1] === lastChar && isWordValid(true)){
-            
-                setWords(lastChar + words)
-                //Insert the deleted character to the text
-                // const newText = lastChar + text;
-                // document.getElementById("text-box").innerText = newText;
-            }
-
-            //Finally validate word and apply styles
-            fixInputStyle(true);
-        }
-    })
-
-    useEffect(() => {
-        window.addEventListener('keydown', handleBackspace);
-
-        return () => {
-            window.removeEventListener('keydown', handleBackspace);
-        };
-    }, [handleBackspace]);
-
-
 
     const fetchWords = () => {
         const APIKey = "5ns9momoyv3b2af81kb1p5g3yc5nn3ccwpmrnjtssetblfipv";
@@ -117,7 +80,7 @@ export const Game = (props) => {
                     clearInterval(intervalRef.current);
                     ctx.clearRect(0, 0, 150, 150);
                     ctx.fillText("0", 65, 85);
-                    //showDialog();
+                    showDialog();
                 }
             }, 100)
         intervalRef.current = intervalId;
@@ -149,11 +112,6 @@ export const Game = (props) => {
         focusInputBox();
         //Load words from API
         fetchWords();
-    }
-
-    const getNextWord = (newWords) => {
-        console.log(newWords);
-        setCurrentWord(newWords.split(" ").filter(el => el !== "")[0]);
     }
 
     const renderTimer = () => {
@@ -229,7 +187,7 @@ export const Game = (props) => {
         setWpm(parseInt(correctWords / (secondsPassed.current / 60)) || 0);
 
         //Calculate accuracy
-        setAccuracy(parseInt(correctWords * 100 / ( correctWords + wrongWords)) || 0 );
+        setAccuracy(Math.floor(parseInt(correctWords * 100 / ( correctWords + wrongWords))) || 0)
 
         //Add word to the passedWords array
         const previousBox = document.getElementById("previous-box");
@@ -239,23 +197,28 @@ export const Game = (props) => {
 
 
 
-    const handleSpace = () => {
+    const handleSpace = (input) => {
         //Get input word from user
         let inputValue = document.getElementById("input-box").innerText;
 
         //Important to prevent deleting next word.
-        if(inputValue.length === 0) return;
+        if(input.length === 0) return;
 
         //If user input = " " then return
-        if((inputValue.length === 1 && inputValue.charCodeAt(0) === 160) || inputValue.charAt(0) === " ") return 0;
+        if((input.length === 1 && input.charCodeAt(0) === 160) || input.charAt(0) === " ") return 0;
 
         //Remove last char because it is the space that has just been pressed
         // inputValue = inputValue.substr(0, inputValue.length);
 
         //Word is correct
-        console.log(inputValue, currentWord)
-        if(inputValue === currentWord || currentWord === inputValue.substr(0, inputValue.length - 1)){
+        //In order to check if the word is correct, we need to support the two browsers aswell
+        //Mozila adds " <br>" when the player hits space and Chrome adds "&nbsp"
+        //So we will be looking for a match based on those values
+        console.log(input.split(" ")[0], currentWord);
+        if(input.split(" ")[0] === currentWord || input.split("&")[0] === currentWord || currentWord === input.substr(0, input.length - 1)){
             //Add this word to the prev container
+            console.log("We have successfully written the word")
+            setWordInProgress("")
             const prevWordsContainer = document.getElementById("previous-box");
             const wordSpan = document.createElement("span");
             wordSpan.innerText = inputValue;
@@ -268,16 +231,15 @@ export const Game = (props) => {
             //const remainingText = document.getElementById("text-box").innerText;
             //Set next word
             let newWords = words.substr(words.indexOf(" ") + 1);
-            getNextWord(newWords);
+            setCurrentWord(newWords.split(" ").filter(el => el !== "")[0]);
             setWords(newWords);
             //document.getElementById("text-box").innerText = remainingText.substr(remainingText.indexOf(" ") + 1)
 
             handleWordWritten(true);
-
-            
         }else{
             //Then the word is incorrect
             //Take user's input and add it to prev container and start next word
+            setWordInProgress("")
             const prevWordsContainer = document.getElementById("previous-box");
             const wordSpan = document.createElement("span");
             wordSpan.innerText = inputValue;
@@ -290,47 +252,22 @@ export const Game = (props) => {
             //Trim remaining text
             //const remainingText = document.getElementById("text-box").innerText;
             let newWords = words.substr(words.indexOf(" ") + 1);
-            getNextWord(newWords);
+            setCurrentWord(newWords.split(" ").filter(el => el !== "")[0]);
             setWords(newWords);
+            handleWordWritten(false);
         }
     }
 
-    //Function to handle text insertion
-    const handleInputChange = (event) => {
-        //First, start the timer if not started.
-        if(!timerStarted){
-            startTimer();
-        }
-        // console.log(currentWord)
-        //Get input word from user
-        // const inputValue = document.getElementById("input-box").innerText;
-
-        //Check if backspace is pressed
-        //If so return because we have
-        //Different handler for backspace
-        console.log(event.charAt(event.length - 1), words[0]);
-
-        if(event.length < wordInProgress.length) return;
-
+    const handleInputChange = (input) => {
+        console.log("handle input change", input)
         //Check if input value is space
-        // else if(event.data.charAt(0) === " " || event.data.charCodeAt(0) === 160){
-        else if(event.charAt(event.length - 1) === ">" || event.charAt(event.length - 1) === ";"){
-            //If user input is just equal to " " return and clear input
-            // if((inputValue.length === 1 && inputValue.charCodeAt(0) === 160) || inputValue.charAt(0) === " ") {
-            //     document.getElementById("input-box").innerText = "";
-                // return 0;
-            // }
-
-            //Else handle space
-            handleSpace();
+        if(input.charAt(input.length - 1) === ">" || input.charAt(input.length - 1) === ";"){
+            handleSpace(input);
+            return;
         }
 
         //Get last character
-        const lastChar = event[event.length - 1];
-
-        //Get current text
-        //const text = document.getElementById("text-box").innerText;
-
+        const lastChar = input[input.length - 1];
         //Get first character
         const firstChar = words[0];
         // console.log(lastChar, firstChar)
@@ -339,13 +276,61 @@ export const Game = (props) => {
         if(isWordValid(false) && (lastChar === firstChar || (firstChar.charCodeAt(0) === 32 && lastChar.charCodeAt(0) === 160))){
             //Remove first character from text
             setWords(words.substr(1));
-
-            //Set new text
-            //document.getElementById("text-box").innerText = newText;
         }
 
         //Finally validate word and apply styles
         fixInputStyle(false);
+        setWordInProgress(input)
+    }
+
+    //Function to handle text insertion
+    const setInputValue = (event) => {
+        console.log("setInputValue", event, wordInProgress)
+        //First, start the timer if not started.
+        if(!timerStarted){
+            if(navigator.userAgent.indexOf("Chrome") != -1)
+                setInputBoxStyle({width: "fit-content"})
+            else if(navigator.userAgent.indexOf("Firefox") != -1)
+                setInputBoxStyle({width: "-moz-fit-content"})
+            startTimer();
+        }
+        //if the entered word is empty (if the player has mistaken the first letter) wel call the handler with fistLetter = true
+        //The "<br>" is for mozila browser because when the player deletes the whole input, the passed value is not a "", but a "<br>"
+        if(event === "<br>" || event === "" ) {
+            console.log("in the first if we go")
+            handleBackspaceNew(true, event);
+            document.getElementById("input-box").innerText = "";
+        }
+        else if(event.length < wordInProgress.length) {
+            console.log("in the second if we go")
+            setWordInProgress("")
+            handleBackspaceNew(false, event);
+        } else {
+            console.log("in the else we go")
+            handleInputChange(event)
+        }
+    }
+
+    const handleBackspaceNew = (firstLetter, input) => {
+        let lastChar = "";
+        if(firstLetter) {
+            lastChar = currentWord[0];
+            if(!(words.split(" ")[0] === currentWord))
+                setWords(lastChar + words);
+            setWordInProgress("");
+        } else {
+            lastChar = wordInProgress[wordInProgress.length - 1];
+            //Decide if current character should be inserted in the text.
+            if(currentWord[wordInProgress.length - 1] === lastChar && isWordValid(true)){
+                setWords(lastChar + words)
+                //Insert the deleted character to the text
+                // const newText = lastChar + text;
+                // document.getElementById("text-box").innerText = newText;
+            }
+            setWordInProgress(input)
+        }
+        //Finally validate word and apply styles
+        fixInputStyle(true);
     }
 
     //Function to validate if the word that user is currently typing is correct substring of the word that he is typing.
@@ -354,7 +339,6 @@ export const Game = (props) => {
     //It uses the updated value of the input, while when handleBackspace is fired it is using the outdated one.
     const isWordValid = (backSpace) => {
         const inputValue = document.getElementById("input-box").innerText;
-        // console.log("currentword", currentWord);
 
         //If the word is longer than the actual word it is wrong.
         if(inputValue.length > currentWord.length) return false;
@@ -449,7 +433,7 @@ export const Game = (props) => {
                     <div id="previous-box">
                         <span id="blinking-cursor">|</span>
                     </div>
-                    <div id="input-box" className="single-line" value="asdasdasda" contentEditable="true" onInput={(e) => handleInputChange(e.target.innerHTML)}/>
+                    <div id="input-box" className="single-line" style={inputBoxStyle} contentEditable="true" onInput={(e) => setInputValue(e.target.innerHTML)}/>
                     <div id="text-box" style={{maxWidth: "50%"}}>{words}</div>
                 </div>
             </div>
