@@ -1,5 +1,8 @@
-import React, {useState, useEffect, useRef, useCallback} from 'react'
+import React, {useState, useEffect, useRef} from 'react'
 import text from '../assets/text'
+import {Dialog} from "./dialog"
+import {Table} from "./table";
+
 
 
 //TODO - go through the input logic to see what is working and what not. For now it is not switching to the new word and also it is not determining correctly if the written word is correct when finished typing
@@ -24,6 +27,8 @@ export const Game = (props) => {
     const tenthsPassed =  useRef(100);
     const startAngleCoef = useRef(1.5);
     const [inputBoxStyle, setInputBoxStyle] = useState({width: "10%"})
+
+    const [showDialog, setShowDialog] = useState(false);
 
     const [passedWords, setPassedWords] =  useState({
         correct: [],
@@ -80,7 +85,8 @@ export const Game = (props) => {
                     clearInterval(intervalRef.current);
                     ctx.clearRect(0, 0, 150, 150);
                     ctx.fillText("0", 65, 85);
-                    showDialog();
+                    setShowDialog(true);
+                    document.getElementById("input-box").blur();
                 }
             }, 100)
         intervalRef.current = intervalId;
@@ -138,25 +144,25 @@ export const Game = (props) => {
     }
 
     //Function which shows the modal dialog at the end of the game
-    const showDialog = () => {
-        //Get the modal
-        const modal = document.getElementsByClassName("modal-wrapper")[0];
-
-        //Set WPM in the modal
-        document.getElementById("modal-wpm").innerText += wpm;
-
-        //Set accuracy in the modal
-        document.getElementById("modal-accuracy").innerText += parseInt(correctWords * 100 / ( correctWords + wrongWords)) || 0 ;
-
-        //Disable user input
-        document.getElementById("input-box").contentEditable = "false";
-
-        //Show modal
-        modal.style.display = "block";
-
-        //Finally generate tables with correct and incorrect words
-        //generateTables(passedWords);
-    }
+    // const showDialog = () => {
+    //     //Get the modal
+    //     const modal = document.getElementsByClassName("modal-wrapper")[0];
+    //
+    //     //Set WPM in the modal
+    //     document.getElementById("modal-wpm").innerText += wpm;
+    //
+    //     //Set accuracy in the modal
+    //     document.getElementById("modal-accuracy").innerText += parseInt(correctWords * 100 / ( correctWords + wrongWords)) || 0 ;
+    //
+    //     //Disable user input
+    //     document.getElementById("input-box").contentEditable = "false";
+    //
+    //     //Show modal
+    //     modal.style.display = "block";
+    //
+    //     //Finally generate tables with correct and incorrect words
+    //     //generateTables(passedWords);
+    // }
 
     //Function which takes a string as parameter and compares it to the current word
     //The characters that are different should become red
@@ -403,6 +409,11 @@ export const Game = (props) => {
 
     return (
         <>
+            <Dialog show={showDialog} handleClose={() => setShowDialog(false)}>
+                <h2>Congratulations!</h2>
+                <p>{`Your score is: ${wpm} words / minute`}</p>
+                <p>{`Your accuracy is: ${accuracy} %`}</p>
+            </Dialog>
             <div id="main-wrapper">
                 <header>
                     <div className="info">
@@ -436,6 +447,7 @@ export const Game = (props) => {
                     <div id="input-box" className="single-line" style={inputBoxStyle} contentEditable="true" onInput={(e) => setInputValue(e.target.innerHTML)}/>
                     <div id="text-box" style={{maxWidth: "50%"}}>{words}</div>
                 </div>
+                <Table tableId={"table-incorrect"} columns={["Word", "Defenition"]} title={"Incorrect words"} />
             </div>
         </>
     )

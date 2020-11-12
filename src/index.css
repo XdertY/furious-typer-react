@@ -19,7 +19,6 @@ html{
   margin-right: auto;
   width: 40%;
   background: #fff1e6;
-  display: none;
 }
 
 #table-correct tbody, #table-incorrect tbody{
