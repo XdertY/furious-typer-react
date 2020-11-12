@@ -1,5 +1,4 @@
-const text = "georgette mordanting lysimeters facticity Hurley" +
-    "polybotrya leyt thumper rabic Iona Leonian dealmaking mouffles subtasks handcarts Attic" +
+const text = "Thumper rabic Iona Leonian dealmaking mouffles subtasks handcarts Attic" +
     "telephony macrotis screwiest toothpick rescribe jemidars hott isibongo sesame put-out laureating" +
     "bullS defeaters swears anabiotic Peacock Buchman genome truckloads unwicked crosstab birdsong" +
     "titanates span-wire waken quadplay gymno televisor perforin nonamputee veisalgia pebbly" +
@@ -18,4 +17,7 @@ const text = "georgette mordanting lysimeters facticity Hurley" +
     "eagling out linimentum overfree precollege coolings bottle-o streaked fenceline aborn furzy" +
     "yappers bicornate dockhand digression donee prodigy fast ZIFT shattered cohesin"
 
+
+    const other = "georgette mordanting lysimeters facticity Hurley" +
+    "polybotrya leyt"
 export default text

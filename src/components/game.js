@@ -3,13 +3,14 @@ import text from '../assets/text'
 
 
 //TODO - go through the input logic to see what is working and what not. For now it is not switching to the new word and also it is not determining correctly if the written word is correct when finished typing
-export const MainWrapper = (props) => {
+export const Game = (props) => {
 
     const [currentWord, setCurrentWord] = useState("")
     const [timerStarted, setTimerStarted]  = useState(false);
     const [correctWords, setCorrectWords] = useState(0);
     const [wrongWords, setWrongWords] =  useState(0);
     const [wpm, setWpm] =  useState(0);
+    const [accuracy, setAccuracy] = useState(0);
     // const [secondsPassed, setSecondsPassed] = useState(0);
     const [prevInput, setPrevInput] = useState("");
     const [wordInProgress, setWordInProgress] = useState("");
@@ -48,12 +49,11 @@ export const MainWrapper = (props) => {
             const lastChar = inputValue[inputValue.length - 1];
             //Decide if current character should be inserted in the text.
             if(currentWord[inputValue.length - 1] === lastChar && isWordValid(true)){
-                //Get current text
-                const text = document.getElementById("text-box").innerText;
-
+            
+                setWords(lastChar + words)
                 //Insert the deleted character to the text
-                const newText = lastChar + text;
-                document.getElementById("text-box").innerText = newText;
+                // const newText = lastChar + text;
+                // document.getElementById("text-box").innerText = newText;
             }
 
             //Finally validate word and apply styles
@@ -151,9 +151,9 @@ export const MainWrapper = (props) => {
         fetchWords();
     }
 
-    const getNextWord = () => {
-        const text = document.getElementById("text-box").innerText;
-        setCurrentWord(text.split(" ").filter(el => el !== "")[0]);
+    const getNextWord = (newWords) => {
+        console.log(newWords);
+        setCurrentWord(newWords.split(" ").filter(el => el !== "")[0]);
     }
 
     const renderTimer = () => {
@@ -226,14 +226,10 @@ export const MainWrapper = (props) => {
         wordCorrect ? setCorrectWords(correctWords + 1) : setWrongWords(wrongWords + 1) ;
 
         //Calculate WPM
-        setWpm(parseInt(correctWords / (secondsPassed / 60)) || 0);
-        //Set WPM label
-        document.getElementById("wpm").innerText = wpm;
+        setWpm(parseInt(correctWords / (secondsPassed.current / 60)) || 0);
 
         //Calculate accuracy
-        const accuracy = parseInt(correctWords * 100 / ( correctWords + wrongWords)) || 0 ;
-        //Set accuracy label
-        document.getElementById("accuracy").innerText = accuracy;
+        setAccuracy(parseInt(correctWords * 100 / ( correctWords + wrongWords)) || 0 );
 
         //Add word to the passedWords array
         const previousBox = document.getElementById("previous-box");
@@ -244,10 +240,8 @@ export const MainWrapper = (props) => {
 
 
     const handleSpace = () => {
-        console.log("handle space")
         //Get input word from user
         let inputValue = document.getElementById("input-box").innerText;
-        console.log(inputValue.length)
 
         //Important to prevent deleting next word.
         if(inputValue.length === 0) return;
@@ -271,13 +265,16 @@ export const MainWrapper = (props) => {
             document.getElementById("input-box").innerText = "";
 
             //Trim remaining text
-            const remainingText = document.getElementById("text-box").innerText;
-            document.getElementById("text-box").innerText = remainingText.substr(remainingText.indexOf(" ") + 1)
+            //const remainingText = document.getElementById("text-box").innerText;
+            //Set next word
+            let newWords = words.substr(words.indexOf(" ") + 1);
+            getNextWord(newWords);
+            setWords(newWords);
+            //document.getElementById("text-box").innerText = remainingText.substr(remainingText.indexOf(" ") + 1)
 
             handleWordWritten(true);
 
-            //Set next word
-            getNextWord();
+            
         }else{
             //Then the word is incorrect
             //Take user's input and add it to prev container and start next word
@@ -291,13 +288,10 @@ export const MainWrapper = (props) => {
             document.getElementById("input-box").innerText = "";
 
             //Trim remaining text
-            const remainingText = document.getElementById("text-box").innerText;
-            document.getElementById("text-box").innerText = remainingText.substr(remainingText.indexOf(" ") + 1)
-
-            handleWordWritten(false);
-
-            //Set next word
-            getNextWord();
+            //const remainingText = document.getElementById("text-box").innerText;
+            let newWords = words.substr(words.indexOf(" ") + 1);
+            getNextWord(newWords);
+            setWords(newWords);
         }
     }
 
@@ -309,12 +303,12 @@ export const MainWrapper = (props) => {
         }
         // console.log(currentWord)
         //Get input word from user
-        const inputValue = document.getElementById("input-box").innerText;
+        // const inputValue = document.getElementById("input-box").innerText;
 
         //Check if backspace is pressed
         //If so return because we have
         //Different handler for backspace
-        console.log(event.charAt(event.length - 1));
+        console.log(event.charAt(event.length - 1), words[0]);
 
         if(event.length < wordInProgress.length) return;
 
@@ -332,22 +326,22 @@ export const MainWrapper = (props) => {
         }
 
         //Get last character
-        const lastChar = inputValue[inputValue.length - 1];
+        const lastChar = event[event.length - 1];
 
         //Get current text
-        const text = document.getElementById("text-box").innerText;
+        //const text = document.getElementById("text-box").innerText;
 
         //Get first character
-        const firstChar = text[0];
+        const firstChar = words[0];
         // console.log(lastChar, firstChar)
 
         //Compare user's last character and current text's first character
         if(isWordValid(false) && (lastChar === firstChar || (firstChar.charCodeAt(0) === 32 && lastChar.charCodeAt(0) === 160))){
             //Remove first character from text
-            const newText = text.substr(1);
+            setWords(words.substr(1));
 
             //Set new text
-            document.getElementById("text-box").innerText = newText;
+            //document.getElementById("text-box").innerText = newText;
         }
 
         //Finally validate word and apply styles
@@ -433,7 +427,7 @@ export const MainWrapper = (props) => {
                         </canvas>
                         <div className="info-card-wrapper">
                             <div className="info-card-content">
-                                <label id="wpm">0</label>
+                                <label id="wpm">{wpm}</label>
                             </div>
                             <div className="info-card-footer">
                                 words / min
@@ -441,7 +435,7 @@ export const MainWrapper = (props) => {
                         </div>
                         <div className="info-card-wrapper">
                             <div className="info-card-content">
-                                <label id="accuracy">0</label>
+                                <label id="accuracy">{accuracy}</label>
                             </div>
                             <div className="info-card-footer">
                                 accuracy %
@@ -455,7 +449,7 @@ export const MainWrapper = (props) => {
                     <div id="previous-box">
                         <span id="blinking-cursor">|</span>
                     </div>
-                    <div id="input-box" className="single-line" contentEditable="true" onInput={(e) => handleInputChange(e.target.innerHTML)}/>
+                    <div id="input-box" className="single-line" value="asdasdasda" contentEditable="true" onInput={(e) => handleInputChange(e.target.innerHTML)}/>
                     <div id="text-box" style={{maxWidth: "50%"}}>{words}</div>
                 </div>
             </div>
