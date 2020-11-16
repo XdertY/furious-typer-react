@@ -9,6 +9,10 @@ html{
   background-size: cover;
 }
 
+.table {
+  text-align: center;
+}
+
 #word-tables{
   display: flex;
 }
@@ -40,6 +44,7 @@ html{
 #table-correct, #table-incorrect, td, th {
   border: black 2px solid;
   border-collapse: collapse;
+  text-align: center !important;
 }
 
 #main-wrapper header{

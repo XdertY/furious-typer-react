@@ -1,4 +1,4 @@
-const text = "Thumper rabic Iona Leonian dealmaking mouffles subtasks handcarts Attic" +
+const text = "Hurley rabic Iona Leonian dealmaking mouffles subtasks handcarts Attic" +
     "telephony macrotis screwiest toothpick rescribe jemidars hott isibongo sesame put-out laureating" +
     "bullS defeaters swears anabiotic Peacock Buchman genome truckloads unwicked crosstab birdsong" +
     "titanates span-wire waken quadplay gymno televisor perforin nonamputee veisalgia pebbly" +

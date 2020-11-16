@@ -27,6 +27,7 @@ export const Game = (props) => {
     const tenthsPassed =  useRef(100);
     const startAngleCoef = useRef(1.5);
     const [inputBoxStyle, setInputBoxStyle] = useState({width: "10%"})
+    const [showTables, setShowTables] = useState(false);
 
     const [showDialog, setShowDialog] = useState(false);
 
@@ -86,6 +87,8 @@ export const Game = (props) => {
                     ctx.clearRect(0, 0, 150, 150);
                     ctx.fillText("0", 65, 85);
                     setShowDialog(true);
+                    setShowTables(true);
+                    document.getElementById("input-box").contentEditable = false;
                     document.getElementById("input-box").blur();
                 }
             }, 100)
@@ -167,13 +170,14 @@ export const Game = (props) => {
     //Function which takes a string as parameter and compares it to the current word
     //The characters that are different should become red
     const setWrongCharacters = (word) => {
+        console.log("setWrongCharacters: ", word)
         let result = "";
         for (let i in currentWord){
             if(word.length < i){
-                result += `<span style='color: red'>${currentWord.charAt(i)}</span>`;
+                result += currentWord.charAt(i);
             }else{
                 if (word.charAt(i) !== currentWord.charAt(i)){
-                    result += `<span style='color: red'>${currentWord.charAt(i)}</span>`;
+                    result += currentWord.charAt(i)
                 }else{
                     result += currentWord.charAt(i);
                 }
@@ -202,7 +206,6 @@ export const Game = (props) => {
     }
 
 
-
     const handleSpace = (input) => {
         //Get input word from user
         let inputValue = document.getElementById("input-box").innerText;
@@ -220,10 +223,8 @@ export const Game = (props) => {
         //In order to check if the word is correct, we need to support the two browsers aswell
         //Mozila adds " <br>" when the player hits space and Chrome adds "&nbsp"
         //So we will be looking for a match based on those values
-        console.log(input.split(" ")[0], currentWord);
         if(input.split(" ")[0] === currentWord || input.split("&")[0] === currentWord || currentWord === input.substr(0, input.length - 1)){
             //Add this word to the prev container
-            console.log("We have successfully written the word")
             setWordInProgress("")
             const prevWordsContainer = document.getElementById("previous-box");
             const wordSpan = document.createElement("span");
@@ -265,7 +266,6 @@ export const Game = (props) => {
     }
 
     const handleInputChange = (input) => {
-        console.log("handle input change", input)
         //Check if input value is space
         if(input.charAt(input.length - 1) === ">" || input.charAt(input.length - 1) === ";"){
             handleSpace(input);
@@ -291,7 +291,6 @@ export const Game = (props) => {
 
     //Function to handle text insertion
     const setInputValue = (event) => {
-        console.log("setInputValue", event, wordInProgress)
         //First, start the timer if not started.
         if(!timerStarted){
             if(navigator.userAgent.indexOf("Chrome") != -1)
@@ -303,16 +302,13 @@ export const Game = (props) => {
         //if the entered word is empty (if the player has mistaken the first letter) wel call the handler with fistLetter = true
         //The "<br>" is for mozila browser because when the player deletes the whole input, the passed value is not a "", but a "<br>"
         if(event === "<br>" || event === "" ) {
-            console.log("in the first if we go")
             handleBackspaceNew(true, event);
             document.getElementById("input-box").innerText = "";
         }
         else if(event.length < wordInProgress.length) {
-            console.log("in the second if we go")
             setWordInProgress("")
             handleBackspaceNew(false, event);
         } else {
-            console.log("in the else we go")
             handleInputChange(event)
         }
     }
@@ -447,7 +443,12 @@ export const Game = (props) => {
                     <div id="input-box" className="single-line" style={inputBoxStyle} contentEditable="true" onInput={(e) => setInputValue(e.target.innerHTML)}/>
                     <div id="text-box" style={{maxWidth: "50%"}}>{words}</div>
                 </div>
-                <Table tableId={"table-incorrect"} columns={["Word", "Defenition"]} title={"Incorrect words"} />
+                {showTables ?
+                    <React.Fragment>
+                        <Table tableId={"table-correct"} columns={["Word", "Definition"]} title={"Correct words"} data={passedWords.correct} />
+                        <Table tableId={"table-incorrect"} columns={["Word", "Definition"]} title={"Incorrect words"} data={passedWords.incorrect} />
+                    </React.Fragment>
+                : null }
             </div>
         </>
     )
